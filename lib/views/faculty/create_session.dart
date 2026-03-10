@@ -84,15 +84,42 @@ class _CreateSessionState extends ConsumerState<CreateSession> {
       );
 
       if (!AuthService.isPrototypeMode) {
-        await FirebaseFirestore.instance
+        // 1. Create the session document
+        final sessionRef = FirebaseFirestore.instance
             .collection('class_sessions')
-            .add(session.toMap());
+            .doc(session.sessionId);
+
+        await sessionRef.set(session.toMap());
+
+        // 2. Fetch all students in this specific section
+        final studentsSnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .where('role', isEqualTo: 'student')
+            .where('section', isEqualTo: session.section.toUpperCase())
+            .get();
+
+        // 3. Batch write 'absent' records for all of them
+        if (studentsSnapshot.docs.isNotEmpty) {
+          final batch = FirebaseFirestore.instance.batch();
+          for (var studentDoc in studentsSnapshot.docs) {
+            final attendanceRef =
+                sessionRef.collection('attendance').doc(studentDoc.id);
+            batch.set(attendanceRef, {
+              'status': 'absent',
+              'timestamp': null,
+              'marked_by': 'auto',
+            });
+          }
+          await batch.commit();
+          debugPrint(
+              'Initialized ${studentsSnapshot.docs.length} absent students.');
+        }
       }
 
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Session created successfully in Firebase'),
+          content: Text('Session created & Student roll initialized'),
           backgroundColor: Colors.green,
         ));
       }
