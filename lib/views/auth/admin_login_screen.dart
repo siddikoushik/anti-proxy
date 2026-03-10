@@ -18,7 +18,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     try {
       await AuthService()
           .signInWithEmail(_emailController.text, _passwordController.text);
-      // No manual navigation needed; AuthWrapper handles it
+      if (mounted) Navigator.pop(context); // Remove login screen from stack
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
