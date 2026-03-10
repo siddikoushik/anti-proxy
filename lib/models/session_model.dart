@@ -6,7 +6,9 @@ class SessionModel {
   final String section;
   final String facultyUserId;
   final String facultyAuthUid;
-  final DateTime startTime;
+  final String date;
+  final String timeSlot;
+  final DateTime startTime; // Kept for backwards compatibility
   final DateTime endTime;
   final double lat;
   final double lng;
@@ -20,6 +22,8 @@ class SessionModel {
     required this.section,
     required this.facultyUserId,
     required this.facultyAuthUid,
+    required this.date,
+    required this.timeSlot,
     required this.startTime,
     required this.endTime,
     required this.lat,
@@ -36,6 +40,8 @@ class SessionModel {
       section: map['section'] ?? '',
       facultyUserId: map['faculty_user_id'] ?? '',
       facultyAuthUid: map['faculty_auth_uid'] ?? '',
+      date: map['date'] ?? '',
+      timeSlot: map['time_slot'] ?? '',
       startTime: (map['start_time'] as Timestamp).toDate(),
       endTime: (map['end_time'] as Timestamp).toDate(),
       lat: map['location']['lat']?.toDouble() ?? 0.0,
@@ -52,6 +58,8 @@ class SessionModel {
       'section': section,
       'faculty_user_id': facultyUserId,
       'faculty_auth_uid': facultyAuthUid,
+      'date': date,
+      'time_slot': timeSlot,
       'start_time': Timestamp.fromDate(startTime),
       'end_time': Timestamp.fromDate(endTime),
       'location': {
