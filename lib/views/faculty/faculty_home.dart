@@ -18,12 +18,7 @@ class FacultyHome extends ConsumerWidget {
       return FirebaseFirestore.instance
           .collection('class_sessions')
           .where('faculty_user_id', isEqualTo: userId)
-          .orderBy('created_at', descending: true)
-          .snapshots()
-          .timeout(const Duration(seconds: 5), onTimeout: (sink) {
-        sink.addError(
-            'Stream timed out. This usually means a missing database index. Check your console log or Firebase console.');
-      });
+          .snapshots();
     } catch (e) {
       debugPrint("Firestore query skipped in prototype mode");
       return const Stream<QuerySnapshot>.empty();
@@ -63,7 +58,15 @@ class FacultyHome extends ConsumerWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final sessions = snapshot.data?.docs ?? [];
+          final sessions = snapshot.data?.docs.toList() ?? [];
+          sessions.sort((a, b) {
+            final aData = a.data() as Map<String, dynamic>;
+            final bData = b.data() as Map<String, dynamic>;
+            final aTime = aData['created_at'] as Timestamp?;
+            final bTime = bData['created_at'] as Timestamp?;
+            if (aTime == null || bTime == null) return 0;
+            return bTime.compareTo(aTime); // Descending
+          });
 
           return Column(
             children: [
