@@ -40,18 +40,9 @@ service cloud.firestore {
       
       // Attendance subcollection
       match /attendance/{studentDocId} {
-        allow read: if request.auth != null && 
-          (getRole() in ['faculty', 'admin'] || studentDocId == request.auth.uid);
-        
-        allow create: if request.auth != null && getRole() == 'faculty';
-        
-        allow update: if request.auth != null && (
-          (getRole() == 'faculty') ||
-          (getRole() == 'student' && 
-           get(/databases/$(database)/documents/class_sessions/$(sessionId)).data.status == 'open' &&
-           request.resource.data.status == 'present' &&
-           request.resource.data.marked_by == 'student')
-        );
+        allow read: if request.auth != null;
+        allow create: if request.auth != null;
+        allow update: if request.auth != null;
       }
     }
   }
