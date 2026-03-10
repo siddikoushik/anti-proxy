@@ -1,25 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/auth_service.dart';
+import '../../providers/auth_provider.dart';
 
-class AdminLoginScreen extends StatefulWidget {
+class AdminLoginScreen extends ConsumerStatefulWidget {
   const AdminLoginScreen({super.key});
 
   @override
-  State<AdminLoginScreen> createState() => _AdminLoginScreenState();
+  ConsumerState<AdminLoginScreen> createState() => _AdminLoginScreenState();
 }
 
-class _AdminLoginScreenState extends State<AdminLoginScreen> {
+class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
   Future<void> _login() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter both email and password')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
+    debugPrint('AdminLogin: Attempting login for ${_emailController.text}');
+
     try {
-      await AuthService()
-          .signInWithEmail(_emailController.text, _passwordController.text);
-      if (mounted) Navigator.pop(context); // Remove login screen from stack
+      final auth = ref.read(authServiceProvider);
+      await auth.signInWithEmail(
+          _emailController.text, _passwordController.text);
+
+      debugPrint('AdminLogin: Login successful');
+      if (mounted) {
+        Navigator.pop(context); // Go back, AuthWrapper will handle the rest
+      }
     } catch (e) {
+      debugPrint('AdminLogin: Login error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Login Failed: ${e.toString()}')),

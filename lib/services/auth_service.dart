@@ -10,25 +10,12 @@ class AuthService {
   FirebaseAuth? _manualAuth;
   FirebaseFirestore? _manualDb;
 
-  FirebaseAuth get _auth {
-    try {
-      return _manualAuth ??= FirebaseAuth.instance;
-    } catch (e) {
-      throw 'Firebase not initialized';
-    }
-  }
-
-  FirebaseFirestore get _db {
-    return _manualDb ??= FirebaseFirestore.instance;
-  }
+  FirebaseAuth get _auth => _manualAuth ?? FirebaseAuth.instance;
+  FirebaseFirestore get _db => _manualDb ?? FirebaseFirestore.instance;
 
   Stream<User?> get authStateChanges {
     if (isPrototypeMode) return Stream.value(null);
-    try {
-      return _auth.authStateChanges();
-    } catch (e) {
-      return Stream.value(null);
-    }
+    return _auth.authStateChanges();
   }
 
   Future<UserModel?> getUserData(String uid) async {
