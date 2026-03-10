@@ -36,6 +36,9 @@ class _StudentOtpLoginState extends State<StudentOtpLogin> {
       if (!AuthService.isPrototypeMode) {
         try {
           await AuthService().signInAnonymously();
+          if (mounted) {
+            Navigator.pop(context); // Close the OTP dialog/screen
+          }
           // The AuthWrapper will detect the state change and automatically swap the screen
           // Do NOT call Navigator.pop(context) here, because the widget will be unmounted
           // instantly by Riverpod, causing an error that freezes the UI loop.
