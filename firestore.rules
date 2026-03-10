@@ -16,7 +16,8 @@ service cloud.firestore {
 
     // Users collection
     match /users/{userId} {
-      allow read: if request.auth != null;
+      // Allow public read so unauthenticated students can check if their Roll Number exists for OTP
+      allow read: if true;
       // Allow creation by any authenticated user because Admin Bootstrap might not have matching Auth UID
       // The UI strictly hides the Registration screen from non-admins.
       allow create: if request.auth != null;
@@ -25,9 +26,9 @@ service cloud.firestore {
 
     // Pending OTPs
     match /pending_otps/{userId} {
-      allow create: if request.auth != null; // Students request
-      allow read: if request.auth != null;
-      allow update: if request.auth != null && (getRole() == 'admin' || userId == request.auth.uid);
+      allow create: if true; // Unauthenticated students request OTPs here
+      allow read: if true;   // Unauthenticated students verify their OTP here
+      allow update: if true; // Unauthenticated students mark their OTP as consumed
     }
 
     // Class Sessions
