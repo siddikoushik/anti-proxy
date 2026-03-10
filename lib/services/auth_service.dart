@@ -75,9 +75,13 @@ class AuthService {
       options: Firebase.app().options,
     );
     try {
-      UserCredential userCredential =
-          await FirebaseAuth.instanceFor(app: tempApp)
-              .createUserWithEmailAndPassword(email: email, password: password);
+      final tempAuth = FirebaseAuth.instanceFor(app: tempApp);
+      // Ensure the temp app doesn't overwrite the admin's login state in the browser
+      if (kIsWeb) {
+        await tempAuth.setPersistence(Persistence.NONE);
+      }
+      UserCredential userCredential = await tempAuth
+          .createUserWithEmailAndPassword(email: email, password: password);
       return userCredential;
     } finally {
       await tempApp.delete();
