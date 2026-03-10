@@ -83,6 +83,7 @@ class AuthWrapper extends ConsumerWidget {
 
     return authState.when(
       data: (user) {
+        debugPrint('AuthWrapper: User is ${user?.uid}');
         if (user == null) {
           return const LoginSelectionScreen();
         }
@@ -92,19 +93,32 @@ class AuthWrapper extends ConsumerWidget {
 
         return userModelAsync.when(
           data: (userModel) {
+            debugPrint(
+                'AuthWrapper: UserModel is ${userModel?.userId}, Role: ${userModel?.role}');
             if (userModel == null) {
-              // Handle case where user is authenticated but no profile exists yet
               return Scaffold(
                 body: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Setting up your profile...'),
+                      const Icon(Icons.person_search,
+                          size: 64, color: Colors.blue),
+                      const SizedBox(height: 16),
+                      const Text('Profile not found in database.',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                      const Padding(
+                        padding: EdgeInsets.all(24.0),
+                        child: Text(
+                          'You are logged into Auth, but your student/admin record does not exist. \n\nPlease use the "Bootstrap" step I provided to register yourself as an ADMIN first.',
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () =>
                             ref.read(authServiceProvider).signOut(),
-                        child: const Text('Back to Login'),
+                        child: const Text('Sign Out & Try Again'),
                       ),
                     ],
                   ),
@@ -121,20 +135,57 @@ class AuthWrapper extends ConsumerWidget {
                 return const StudentHome();
             }
           },
-          loading: () => const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          ),
-          error: (e, stack) => Scaffold(
-            body: Center(child: Text('Error loading user data: $e')),
-          ),
+          loading: () {
+            debugPrint('AuthWrapper: userProvider is loading...');
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 24),
+                    const Text('Fetching your profile...'),
+                    const SizedBox(height: 32),
+                    TextButton(
+                      onPressed: () => ref.read(authServiceProvider).signOut(),
+                      child: const Text('Stuck? Sign Out'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+          error: (e, stack) {
+            debugPrint('AuthWrapper: userProvider error: $e');
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Error loading profile: $e'),
+                    ElevatedButton(
+                      onPressed: () => ref.read(authServiceProvider).signOut(),
+                      child: const Text('Refresh / Sign Out'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (e, stack) => Scaffold(
-        body: Center(child: Text('Authentication Error: $e')),
-      ),
+      loading: () {
+        debugPrint('AuthWrapper: authStateProvider is loading...');
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
+      },
+      error: (e, stack) {
+        debugPrint('AuthWrapper: authStateProvider error: $e');
+        return Scaffold(
+          body: Center(child: Text('Authentication Error: $e')),
+        );
+      },
     );
   }
 }

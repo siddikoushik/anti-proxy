@@ -12,5 +12,10 @@ final authStateProvider = StreamProvider<User?>((ref) {
 final userProvider = FutureProvider<UserModel?>((ref) async {
   final user = ref.watch(authStateProvider).value;
   if (user == null) return null;
-  return await ref.watch(authServiceProvider).getUserData(user.uid);
+  return await ref
+      .watch(authServiceProvider)
+      .getUserData(user.uid)
+      .timeout(const Duration(seconds: 10), onTimeout: () {
+    return null; // Return null to show the "Profile not found" screen if it times out
+  });
 });

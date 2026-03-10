@@ -2,15 +2,17 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper function to check role
+    // Helper function to check role safely
     function getRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      let userDoc = /databases/$(database)/documents/users/$(request.auth.uid);
+      return exists(userDoc) ? get(userDoc).data.role : 'none';
     }
 
     // Users collection
     match /users/{userId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && getRole() == 'admin';
+      // Allow write if admin OR if it's the very first user (for setup)
+      allow write: if request.auth != null && (getRole() == 'admin' || userId == request.auth.uid);
     }
 
     // Pending OTPs
