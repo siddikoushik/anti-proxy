@@ -34,9 +34,8 @@ service cloud.firestore {
     // Class Sessions
     match /class_sessions/{sessionId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null && getRole() == 'faculty';
-      allow update, delete: if request.auth != null && 
-        (getRole() == 'admin' || resource.data.faculty_auth_uid == request.auth.uid);
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null;
       
       // Attendance subcollection
       match /attendance/{studentDocId} {
