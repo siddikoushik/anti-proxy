@@ -1,7 +1,6 @@
+```dart
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
 
-import '../admin/admin_dashboard.dart';
 
 class AdminLoginScreen extends StatefulWidget {
   const AdminLoginScreen({super.key});
@@ -20,10 +19,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     try {
       await AuthService()
           .signInWithEmail(_emailController.text, _passwordController.text);
-      if (mounted) {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => const AdminDashboard()));
-      }
+      // No manual navigation needed; AuthWrapper handles it
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

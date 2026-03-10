@@ -19,10 +19,7 @@ class _FacultyLoginScreenState extends State<FacultyLoginScreen> {
     try {
       await AuthService()
           .signInWithEmail(_emailController.text, _passwordController.text);
-      if (mounted) {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => const FacultyHome()));
-      }
+      // No manual navigation needed; AuthWrapper handles it
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
