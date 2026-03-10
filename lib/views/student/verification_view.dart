@@ -1,3 +1,5 @@
+import 'dart:developer';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -45,13 +47,17 @@ class _VerificationViewState extends ConsumerState<VerificationView> {
           preferredCameraDevice: CameraDevice.front);
       if (photo == null) throw 'Selfie required';
 
-      setState(() => _status = 'Analyzing Face...');
-      final inputImage = InputImage.fromFilePath(photo.path);
-      final faceDetector = FaceDetector(options: FaceDetectorOptions());
-      final List<Face> faces = await faceDetector.processImage(inputImage);
-      await faceDetector.close();
+      if (!kIsWeb) {
+        setState(() => _status = 'Analyzing Face...');
+        final inputImage = InputImage.fromFilePath(photo.path);
+        final faceDetector = FaceDetector(options: FaceDetectorOptions());
+        final List<Face> faces = await faceDetector.processImage(inputImage);
+        await faceDetector.close();
 
-      if (faces.isEmpty) throw 'No face detected in selfie';
+        if (faces.isEmpty) throw 'No face detected in selfie';
+      } else {
+        log('Web Platform detected: Bypassing ML Kit Face Detection pipeline.');
+      }
 
       // Layer 4: Final Submit
       setState(() => _status = 'Marking Attendance...');

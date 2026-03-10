@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -69,7 +68,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       appBar: AppBar(title: const Text('Scan Faculty QR')),
       body: MobileScanner(
         controller: MobileScannerController(
-          facing: kIsWeb ? CameraFacing.front : CameraFacing.back,
+          facing: CameraFacing.back,
           formats: const [BarcodeFormat.qrCode],
         ),
         onDetect: _onDetect,
