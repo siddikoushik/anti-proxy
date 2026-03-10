@@ -55,19 +55,25 @@ class _UserRegistrationState extends State<UserRegistration> {
 
       if (!AuthService.isPrototypeMode) {
         if (_pickedFile != null) {
+          debugPrint('Registration: Uploading photo...');
           final bytes = await _pickedFile!.readAsBytes();
           final ref = FirebaseStorage.instance
               .ref()
               .child('user_photos/${_idController.text}.jpg');
 
           final metadata = SettableMetadata(contentType: 'image/jpeg');
-          await ref
-              .putData(bytes, metadata)
-              .timeout(const Duration(seconds: 15));
-          photoUrl =
-              await ref.getDownloadURL().timeout(const Duration(seconds: 15));
+          await ref.putData(bytes, metadata).timeout(
+              const Duration(seconds: 15),
+              onTimeout: () =>
+                  throw 'Photo upload timed out (CORS or Permissions?)');
+
+          debugPrint('Registration: Getting photo URL...');
+          photoUrl = await ref.getDownloadURL().timeout(
+              const Duration(seconds: 15),
+              onTimeout: () => throw 'Getting photo URL timed out');
         }
 
+        debugPrint('Registration: Creating Firestore document...');
         final user = UserModel(
           userId: _idController.text,
           name: _nameController.text,
@@ -83,7 +89,10 @@ class _UserRegistrationState extends State<UserRegistration> {
             .collection('users')
             .doc(user.userId)
             .set(user.toMap())
-            .timeout(const Duration(seconds: 15));
+            .timeout(const Duration(seconds: 15),
+                onTimeout: () =>
+                    throw 'Firestore write timed out (Check Rules)');
+        debugPrint('Registration: Success!');
       }
 
       if (mounted) {

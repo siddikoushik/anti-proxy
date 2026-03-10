@@ -3,15 +3,16 @@ service cloud.firestore {
   match /databases/{database}/documents {
     
     // Helper function to check role safely
+    // IMPORTANT: Admin document ID MUST be the Firebase Auth UID
     function getRole() {
-      let userDoc = /databases/$(database)/documents/users/$(request.auth.uid);
-      return exists(userDoc) ? get(userDoc).data.role : 'none';
+      let path = /databases/$(database)/documents/users/$(request.auth.uid);
+      return exists(path) ? get(path).data.role : 'none';
     }
 
     // Users collection
     match /users/{userId} {
       allow read: if request.auth != null;
-      // Allow write if admin OR if it's the very first user (for setup)
+      // Admin can write any user. User can write their own profile if Doc ID == Auth UID.
       allow write: if request.auth != null && (getRole() == 'admin' || userId == request.auth.uid);
     }
 
