@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/session_model.dart';
 import '../../services/auth_service.dart';
+import '../../providers/auth_provider.dart';
 
 class CreateSession extends ConsumerStatefulWidget {
   const CreateSession({super.key});
@@ -40,15 +41,21 @@ class _CreateSessionState extends ConsumerState<CreateSession> {
       return;
     }
 
+    final user = ref.read(userProvider).value;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error: User profile not loaded')));
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
       final session = SessionModel(
         sessionId: DateTime.now().millisecondsSinceEpoch.toString(),
         subject: _subjectController.text,
         section: _sectionController.text,
-        facultyUserId:
-            'faculty_demo', // TODO: Replace with real faculty ID from auth
-        facultyAuthUid: 'demo_uid',
+        facultyUserId: user.userId, // Use the real, logged-in user ID
+        facultyAuthUid: user.authUid ?? 'unknown',
         startTime: DateTime.now(),
         endTime: DateTime.now().add(const Duration(hours: 1)),
         lat: _currentPosition!.latitude,

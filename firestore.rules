@@ -3,10 +3,15 @@ service cloud.firestore {
   match /databases/{database}/documents {
     
     // Helper function to check role safely
-    // IMPORTANT: Admin document ID MUST be the Firebase Auth UID
     function getRole() {
-      let path = /databases/$(database)/documents/users/$(request.auth.uid);
-      return exists(path) ? get(path).data.role : 'none';
+      // First try to look up by Auth UID matching the document ID
+      let directPath = /databases/$(database)/documents/users/$(request.auth.uid);
+      // We can't do a where() query in security rules, but typically the app ensures 
+      // the faculty can create a session because their Auth UID matches a user doc.
+      // If direct path exists, return that role.
+      return exists(directPath) ? get(directPath).data.role : 'none';
+      // NOTE: Because of Firestore rule limitations, we strongly recommend migrating the app 
+      // to make the document ID equal to the Firebase Auth UID. 
     }
 
     // Users collection
