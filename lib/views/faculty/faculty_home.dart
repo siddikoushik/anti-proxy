@@ -19,7 +19,11 @@ class FacultyHome extends ConsumerWidget {
           .collection('class_sessions')
           .where('faculty_user_id', isEqualTo: userId)
           .orderBy('created_at', descending: true)
-          .snapshots();
+          .snapshots()
+          .timeout(const Duration(seconds: 5), onTimeout: (sink) {
+        sink.addError(
+            'Stream timed out. This usually means a missing database index. Check your console log or Firebase console.');
+      });
     } catch (e) {
       debugPrint("Firestore query skipped in prototype mode");
       return const Stream<QuerySnapshot>.empty();
