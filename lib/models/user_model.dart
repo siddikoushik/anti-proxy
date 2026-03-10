@@ -24,15 +24,39 @@ class UserModel {
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
+    // Basic field parsing with defaults
+    final userId = map['user_id'] ?? map['userId'] ?? '';
+    final name = map['name'] ?? 'Unknown User';
+
+    // Defensive role parsing
+    UserRole role = UserRole.student;
+    try {
+      final roleStr = map['role']?.toString().toLowerCase();
+      role = UserRole.values.firstWhere(
+        (e) => e.name == roleStr,
+        orElse: () => UserRole.student,
+      );
+    } catch (_) {}
+
+    // Safe timestamp parsing
+    DateTime createdAt = DateTime.now();
+    try {
+      if (map['created_at'] is Timestamp) {
+        createdAt = (map['created_at'] as Timestamp).toDate();
+      } else if (map['issued_at'] is Timestamp) {
+        createdAt = (map['issued_at'] as Timestamp).toDate();
+      }
+    } catch (_) {}
+
     return UserModel(
-      userId: map['user_id'] ?? '',
-      name: map['name'] ?? '',
-      role: UserRole.values.firstWhere((e) => e.name == map['role']),
-      section: map['section'],
-      photoUrl: map['photo_url'],
-      email: map['email'],
-      authUid: map['auth_uid'],
-      createdAt: (map['created_at'] as Timestamp).toDate(),
+      userId: userId,
+      name: name,
+      role: role,
+      section: map['section']?.toString(),
+      photoUrl: map['photo_url']?.toString(),
+      email: map['email']?.toString() ?? map['auth_email']?.toString(),
+      authUid: map['auth_uid']?.toString(),
+      createdAt: createdAt,
     );
   }
 
