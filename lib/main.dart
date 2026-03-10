@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'core/theme/app_theme.dart';
 import 'views/login_screen.dart';
 import 'services/auth_service.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,7 +13,9 @@ void main() async {
   bool firebaseInitialized = false;
   try {
     if (!AuthService.isPrototypeMode) {
-      await Firebase.initializeApp();
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
     }
     firebaseInitialized = true;
   } catch (e) {
