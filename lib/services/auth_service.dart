@@ -93,7 +93,7 @@ class AuthService {
   }
 
   // OTP Logic
-  Future<bool> requestOTP(String userId) async {
+  Future<bool> requestOTP(String rawUserId) async {
     if (isPrototypeMode) {
       await Future.delayed(
           const Duration(milliseconds: 500)); // Simulate network
@@ -101,6 +101,8 @@ class AuthService {
     }
 
     try {
+      final userId = rawUserId.trim().toUpperCase();
+
       // Check if user exists
       var userDoc = await _db.collection('users').doc(userId).get();
       if (!userDoc.exists) return false;
@@ -127,7 +129,7 @@ class AuthService {
     }
   }
 
-  Future<bool> verifyOTP(String userId, String otp) async {
+  Future<bool> verifyOTP(String rawUserId, String otp) async {
     if (isPrototypeMode) {
       await Future.delayed(
           const Duration(milliseconds: 500)); // Simulate network
@@ -135,11 +137,14 @@ class AuthService {
     }
 
     try {
+      final userId = rawUserId.trim().toUpperCase();
+      final cleanOtp = otp.trim();
+
       var otpDoc = await _db.collection('pending_otps').doc(userId).get();
       if (!otpDoc.exists) return false;
 
       var data = otpDoc.data()!;
-      if (data['otp'].toString() == otp && data['consumed'] == false) {
+      if (data['otp'].toString() == cleanOtp && data['consumed'] == false) {
         await _db.collection('pending_otps').doc(userId).update({
           'consumed': true,
           'consumed_at': FieldValue.serverTimestamp(),
