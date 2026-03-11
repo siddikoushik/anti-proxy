@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -63,14 +62,12 @@ class _FaceRegistrationViewState extends ConsumerState<FaceRegistrationView> {
           .child(widget.userId)
           .child('registered_face.jpg');
 
-      String photoUrl;
-      if (kIsWeb) {
-        final bytes = await photo.readAsBytes();
-        await storageRef.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
-      } else {
-        await storageRef.putFile(File(photo.path));
-      }
-      photoUrl = await storageRef.getDownloadURL();
+      final bytes = await photo.readAsBytes();
+      await storageRef.putData(
+        bytes, 
+        SettableMetadata(contentType: 'image/jpeg')
+      );
+      final photoUrl = await storageRef.getDownloadURL();
 
       // 3. Update Firestore (Rules now allow update if authenticated)
       setState(() => _statusMessage = 'Finalizing registration...');

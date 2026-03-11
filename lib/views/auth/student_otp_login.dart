@@ -30,37 +30,38 @@ class _StudentOtpLoginState extends State<StudentOtpLogin> {
 
   Future<void> _verifyAndLogin() async {
     setState(() => _isLoading = true);
-    bool success = await AuthService()
-        .verifyOTP(_userIdController.text, _otpController.text);
-    if (success) {
-      // Anonymous join
-      if (!AuthService.isPrototypeMode) {
-        try {
-          final authService = AuthService();
-          final userCred = await authService.signInAnonymously();
-          
-          // Link the student ID to this anonymous Auth UID
-          await authService.linkStudentAuth(
-            _userIdController.text.trim().toUpperCase(), 
-            userCred.user!.uid
-          );
+    try {
+      bool success = await AuthService()
+          .verifyOTP(_userIdController.text, _otpController.text);
+      if (success) {
+        // Anonymous join
+        final authService = AuthService();
+        final userCred = await authService.signInAnonymously();
 
-          if (mounted) {
-            Navigator.pop(context); // Close the OTP dialog/screen
-          }
-        } catch (e) {
-          if (mounted) {
-            setState(() => _isLoading = false);
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text('Login failed: $e')));
-          }
+        setState(() => _isLoading = true);
+
+        // Link the student ID to this anonymous Auth UID
+        await authService.linkStudentAuth(
+            _userIdController.text.trim().toUpperCase(), userCred.user!.uid);
+
+        // Small delay to ensure Firestore write propagates to query indexes
+        await Future.delayed(const Duration(milliseconds: 1000));
+
+        if (mounted) {
+          Navigator.pop(context); // Close the OTP dialog/screen
+        }
+      } else {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text('Invalid OTP')));
         }
       }
-    } else {
+    } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Invalid OTP')));
+            .showSnackBar(SnackBar(content: Text('Login failed: $e')));
       }
     }
   }

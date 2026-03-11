@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
-import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:firebase_storage/firebase_storage.dart';
@@ -112,14 +111,12 @@ class _VerificationViewState extends ConsumerState<VerificationView> {
           .child(user.userId)
           .child('temp_selfie.jpg');
 
-      String tempSelfieUrl;
-      if (kIsWeb) {
-        final bytes = await photo.readAsBytes();
-        await tempStorageRef.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
-      } else {
-        await tempStorageRef.putFile(File(photo.path));
-      }
-      tempSelfieUrl = await tempStorageRef.getDownloadURL();
+      final bytes = await photo.readAsBytes();
+      await tempStorageRef.putData(
+        bytes, 
+        SettableMetadata(contentType: 'image/jpeg')
+      );
+      final tempSelfieUrl = await tempStorageRef.getDownloadURL();
 
       // Call Luxand API
       final luxandUrl = Uri.parse('https://api.luxand.cloud/photo/similarity');
@@ -146,9 +143,11 @@ class _VerificationViewState extends ConsumerState<VerificationView> {
       }
 
       final double score = (data['score'] ?? 0.0) as double;
-      // We consider it a match if similar == true or score is very high
-      if (data['similar'] != true && score < 0.8) {
-        throw 'Face does not match the registered student. Score: ${(score * 100).toStringAsFixed(1)}%';
+      log('Verification Score: $score');
+
+      // Tighten the requirement: High score is mandatory.
+      if (score < 0.85) {
+        throw 'Face match failed (Score: ${(score * 100).toStringAsFixed(1)}%). Please ensure you are in a well-lit area.';
       }
 
       // Layer 4: Final Submit
