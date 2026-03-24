@@ -178,14 +178,14 @@ class _AnalyticsViewState extends ConsumerState<AnalyticsView> {
                         }
                         
                         final branches = _selectedYear != null
-                            ? classes.where((c) => c.year == _selectedYear).map((c) => c.branch).toSet().toList()..sort()
+                            ? (classes.where((c) => c.year == _selectedYear).map((c) => c.branch).toSet().toList()..sort())
                             : <String>[];
                         if (_selectedBranch != null && !branches.contains(_selectedBranch)) {
                           _selectedBranch = null; _selectedSection = null;
                         }
 
                         final sections = (_selectedYear != null && _selectedBranch != null)
-                            ? classes.where((c) => c.year == _selectedYear && c.branch == _selectedBranch).map((c) => c.section).toSet().toList()..sort()
+                            ? (classes.where((c) => c.year == _selectedYear && c.branch == _selectedBranch).map((c) => c.section).toSet().toList()..sort())
                             : <String>[];
                         if (_selectedSection != null && !sections.contains(_selectedSection)) {
                           _selectedSection = null;
