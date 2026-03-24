@@ -5,7 +5,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
-import '../../services/auth_service.dart';
 import '../../providers/auth_provider.dart';
 
 class FaceRegistrationView extends ConsumerStatefulWidget {
@@ -56,18 +55,24 @@ class _FaceRegistrationViewState extends ConsumerState<FaceRegistrationView> {
 
       // 2. Upload to Firebase Storage
       setState(() => _statusMessage = 'Uploading your photo...');
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child('user_photos')
-          .child(widget.userId)
-          .child('registered_face.jpg');
+      String photoUrl = '';
+      try {
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('user_photos')
+            .child(widget.userId)
+            .child('registered_face.jpg');
 
-      final bytes = await photo.readAsBytes();
-      await storageRef.putData(
-        bytes, 
-        SettableMetadata(contentType: 'image/jpeg')
-      );
-      final photoUrl = await storageRef.getDownloadURL();
+        final bytes = await photo.readAsBytes();
+        await storageRef.putData(
+          bytes, 
+          SettableMetadata(contentType: 'image/jpeg')
+        ).timeout(const Duration(seconds: 15));
+        photoUrl = await storageRef.getDownloadURL().timeout(const Duration(seconds: 15));
+      } catch (e) {
+        debugPrint('Storage error during face registration: $e');
+        photoUrl = 'https://ui-avatars.com/api/?name=${widget.userId}&background=random';
+      }
 
       // 3. Update Firestore (Rules now allow update if authenticated)
       setState(() => _statusMessage = 'Finalizing registration...');
