@@ -216,22 +216,23 @@ class _UserRegistrationState extends ConsumerState<UserRegistration> {
                     _selectedSection = null;
                   }
                   
-                  final branches = _selectedYear != null
-                      ? classes.where((c) => c.year == _selectedYear).map((c) => c.branch).toSet().toList()..sort()
-                      : <String>[];
+                  List<String> branches = [];
+                  if (_selectedYear != null) {
+                    branches = classes.where((c) => c.year == _selectedYear).map((c) => c.branch).toSet().toList()..sort();
+                  }
                   if (!branches.contains(_selectedBranch)) {
                     _selectedBranch = null;
                     _selectedSection = null;
                   }
 
-                  final sections = _selectedBranch != null
-                      ? classes
-                          .where((c) => c.year == _selectedYear && c.branch == _selectedBranch)
-                          .map((c) => c.section)
-                          .toSet()
-                          .toList()
-                          ..sort()
-                      : <String>[];
+                  List<String> sections = [];
+                  if (_selectedYear != null && _selectedBranch != null) {
+                    sections = classes
+                        .where((c) => c.year == _selectedYear && c.branch == _selectedBranch)
+                        .map((c) => c.section)
+                        .toSet()
+                        .toList()..sort();
+                  }
                   if (!sections.contains(_selectedSection)) {
                     _selectedSection = null;
                   }
