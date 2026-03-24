@@ -31,7 +31,11 @@ enum AttendanceFilter { all, below65, below75, above75 }
 class _AnalyticsViewState extends ConsumerState<AnalyticsView> {
   bool _isLoading = true;
   AttendanceFilter _selectedFilter = AttendanceFilter.all;
-  String? _selectedClassFilter = 'All';
+  
+  String? _selectedYear;
+  String? _selectedBranch;
+  String? _selectedSection;
+
   List<StudentAnalytics> _analyticsData = [];
 
   @override
@@ -95,7 +99,7 @@ class _AnalyticsViewState extends ConsumerState<AnalyticsView> {
               pw.Text('Attendance Analytics Report', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
               pw.SizedBox(height: 10),
               pw.Text('Generated on: ${DateTime.now().toIso8601String().split('T')[0]}'),
-              pw.Text('Class Filter: $_selectedClassFilter'),
+              pw.Text('Filters: Year: ${_selectedYear ?? 'All'}, Branch: ${_selectedBranch ?? 'All'}, Section: ${_selectedSection ?? 'All'}'),
               pw.SizedBox(height: 20),
               pw.Table.fromTextArray(
                 headers: ['Roll No', 'Name', 'Section', 'Total', 'Present', '%'],
@@ -124,10 +128,19 @@ class _AnalyticsViewState extends ConsumerState<AnalyticsView> {
     final classService = ref.watch(classServiceProvider);
 
     List<StudentAnalytics> filteredData = _analyticsData.where((s) {
-      if (_selectedClassFilter != null && _selectedClassFilter != 'All' && s.section != _selectedClassFilter) return false;
+      List<String> parts = s.section.split('-');
+      String sy = parts.isNotEmpty ? parts[0] : '';
+      String sb = parts.length > 1 ? parts[1] : '';
+      String ss = parts.length > 2 ? parts[2] : '';
+
+      if (_selectedYear != null && _selectedYear != sy) return false;
+      if (_selectedBranch != null && _selectedBranch != sb) return false;
+      if (_selectedSection != null && _selectedSection != ss) return false;
+
       if (_selectedFilter == AttendanceFilter.below65 && s.attendancePercentage >= 65.0) return false;
       if (_selectedFilter == AttendanceFilter.below75 && s.attendancePercentage >= 75.0) return false;
       if (_selectedFilter == AttendanceFilter.above75 && s.attendancePercentage < 75.0) return false;
+      
       return true;
     }).toList();
 
@@ -149,58 +162,103 @@ class _AnalyticsViewState extends ConsumerState<AnalyticsView> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Wrap(
-                  spacing: 16.0,
-                  runSpacing: 8.0,
-                  crossAxisAlignment: WrapCrossAlignment.center,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Class Dropdown
+                    // Class Dropdowns in a Row
                     StreamBuilder<List<ClassModel>>(
                       stream: classService.getClasses(),
                       builder: (context, snapshot) {
-                        List<String> classOptions = ['All'];
-                        if (snapshot.hasData) {
-                          final classes = snapshot.data!;
-                          for (var c in classes) {
-                            classOptions.add('${c.year}-${c.branch}-${c.section}');
-                          }
+                        if (!snapshot.hasData) return const SizedBox.shrink();
+                        final classes = snapshot.data!;
+                        
+                        final years = classes.map((c) => c.year).toSet().toList()..sort();
+                        if (_selectedYear != null && !years.contains(_selectedYear)) {
+                          _selectedYear = null; _selectedBranch = null; _selectedSection = null;
                         }
-                        return DropdownButton<String>(
-                          value: classOptions.contains(_selectedClassFilter) ? _selectedClassFilter : 'All',
-                          items: classOptions.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                          onChanged: (val) {
-                            setState(() {
-                              _selectedClassFilter = val;
-                            });
-                          },
-                          hint: const Text('Select Class'),
+                        
+                        final branches = _selectedYear != null
+                            ? classes.where((c) => c.year == _selectedYear).map((c) => c.branch).toSet().toList()..sort()
+                            : <String>[];
+                        if (_selectedBranch != null && !branches.contains(_selectedBranch)) {
+                          _selectedBranch = null; _selectedSection = null;
+                        }
+
+                        final sections = (_selectedYear != null && _selectedBranch != null)
+                            ? classes.where((c) => c.year == _selectedYear && c.branch == _selectedBranch).map((c) => c.section).toSet().toList()..sort()
+                            : <String>[];
+                        if (_selectedSection != null && !sections.contains(_selectedSection)) {
+                          _selectedSection = null;
+                        }
+
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: DropdownButtonFormField<String>(
+                                value: _selectedYear,
+                                decoration: const InputDecoration(labelText: 'Year', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                                items: years.map((y) => DropdownMenuItem(value: y, child: Text(y))).toList()..insert(0, const DropdownMenuItem(value: null, child: Text('All'))),
+                                onChanged: (val) => setState(() {
+                                  _selectedYear = val;
+                                  _selectedBranch = null;
+                                  _selectedSection = null;
+                                }),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: DropdownButtonFormField<String>(
+                                value: _selectedBranch,
+                                decoration: const InputDecoration(labelText: 'Branch', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                                items: branches.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList()..insert(0, const DropdownMenuItem(value: null, child: Text('All'))),
+                                onChanged: _selectedYear != null ? (val) => setState(() {
+                                  _selectedBranch = val;
+                                  _selectedSection = null;
+                                }) : null,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: DropdownButtonFormField<String>(
+                                value: _selectedSection,
+                                decoration: const InputDecoration(labelText: 'Section', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                                items: sections.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList()..insert(0, const DropdownMenuItem(value: null, child: Text('All'))),
+                                onChanged: _selectedBranch != null ? (val) => setState(() => _selectedSection = val) : null,
+                              ),
+                            ),
+                          ],
                         );
                       }
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(height: 16),
                     // Filter Chips
-                    ChoiceChip(
-                      label: const Text('All'),
-                      selected: _selectedFilter == AttendanceFilter.all,
-                      onSelected: (val) => setState(() => _selectedFilter = AttendanceFilter.all),
-                    ),
-                    ChoiceChip(
-                      label: const Text('< 65%'),
-                      selected: _selectedFilter == AttendanceFilter.below65,
-                      selectedColor: Colors.red.withValues(alpha: 0.2),
-                      onSelected: (val) => setState(() => _selectedFilter = AttendanceFilter.below65),
-                    ),
-                    ChoiceChip(
-                      label: const Text('< 75%'),
-                      selected: _selectedFilter == AttendanceFilter.below75,
-                      selectedColor: Colors.orange.withValues(alpha: 0.2),
-                      onSelected: (val) => setState(() => _selectedFilter = AttendanceFilter.below75),
-                    ),
-                    ChoiceChip(
-                      label: const Text('>= 75%'),
-                      selected: _selectedFilter == AttendanceFilter.above75,
-                      selectedColor: Colors.green.withValues(alpha: 0.2),
-                      onSelected: (val) => setState(() => _selectedFilter = AttendanceFilter.above75),
+                    Wrap(
+                      spacing: 8.0,
+                      children: [
+                        ChoiceChip(
+                          label: const Text('All'),
+                          selected: _selectedFilter == AttendanceFilter.all,
+                          onSelected: (val) => setState(() => _selectedFilter = AttendanceFilter.all),
+                        ),
+                        ChoiceChip(
+                          label: const Text('< 65%'),
+                          selected: _selectedFilter == AttendanceFilter.below65,
+                          selectedColor: Colors.red.withValues(alpha: 0.2),
+                          onSelected: (val) => setState(() => _selectedFilter = AttendanceFilter.below65),
+                        ),
+                        ChoiceChip(
+                          label: const Text('< 75%'),
+                          selected: _selectedFilter == AttendanceFilter.below75,
+                          selectedColor: Colors.orange.withValues(alpha: 0.2),
+                          onSelected: (val) => setState(() => _selectedFilter = AttendanceFilter.below75),
+                        ),
+                        ChoiceChip(
+                          label: const Text('>= 75%'),
+                          selected: _selectedFilter == AttendanceFilter.above75,
+                          selectedColor: Colors.green.withValues(alpha: 0.2),
+                          onSelected: (val) => setState(() => _selectedFilter = AttendanceFilter.above75),
+                        ),
+                      ],
                     ),
                   ],
                 ),
