@@ -29,9 +29,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
         final String sessionId = payload['s_id'];
         final int timestamp = payload['ts'];
 
-        // Layer 1: Time validation (QR must be < 60s old)
+        // Layer 1: Time validation (QR must be < 12s old)
         final diff = DateTime.now().millisecondsSinceEpoch - timestamp;
-        if (diff > 60000 || diff < -5000) {
+        if (diff > 12000 || diff < -5000) {
           throw 'QR Expired. Please scan the current one.';
         }
 
