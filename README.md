@@ -4,7 +4,7 @@
 A secure, multi-layer verification system for Indian colleges to prevent proxy attendance.
 
 ### 4 Pillars of Verification
-1. **OTP**: Student requests via app, Admin issues verbally (campus entry proof).
+1. **OTP**: Student requests via app, Admin issues verbally (Device binding).
 2. **Dynamic QR**: Faculty generates a QR that refreshes every 10 seconds.
 3. **Geo-fencing**: System verifies student is within the classroom radius (e.g., 25m).
 4. **Facial Recognition**: Live selfie matches the student's registered photo using ML Kit.
