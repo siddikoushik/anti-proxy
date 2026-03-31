@@ -300,9 +300,18 @@ class _SessionCard extends StatelessWidget {
                           children: [
                             const Icon(Icons.person, size: 16, color: Colors.black54),
                             const SizedBox(width: 6),
-                            Text(
-                              'Faculty ID: ${session.facultyUserId}',
-                              style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.black87, fontSize: 13),
+                            FutureBuilder<DocumentSnapshot>(
+                              future: FirebaseFirestore.instance.collection('users').doc(session.facultyUserId).get(),
+                              builder: (context, facultySnapshot) {
+                                String facultyName = "Prof. ${session.facultyUserId.length > 5 ? session.facultyUserId.substring(0, 5) : session.facultyUserId}";
+                                if (facultySnapshot.hasData && facultySnapshot.data!.exists) {
+                                  facultyName = (facultySnapshot.data!.data() as Map<String, dynamic>?)?['name'] ?? facultyName;
+                                }
+                                return Text(
+                                  facultyName,
+                                  style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.black87, fontSize: 13),
+                                );
+                              },
                             ),
                           ],
                         ),
