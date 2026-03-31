@@ -161,143 +161,178 @@ class _UserRegistrationState extends ConsumerState<UserRegistration> {
     }
   }
 
+  Widget _buildTextField(TextEditingController controller, String label, {bool obscureText = false}) {
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(12)),
+        focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blue.shade600, width: 2), borderRadius: BorderRadius.circular(12)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final classService = ref.watch(classServiceProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Register New User')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            GestureDetector(
-              onTap: _pickImage,
-              child: CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.grey.shade200,
-                backgroundImage: _pickedFile != null
-                    ? (kIsWeb
-                        ? MemoryImage(_webImage!)
-                        : NetworkImage(_pickedFile!.path) as ImageProvider)
-                    : null,
-                child: _pickedFile == null
-                    ? const Icon(Icons.camera_alt, size: 40)
-                    : null,
+      backgroundColor: const Color(0xFFF9F9F9),
+      appBar: AppBar(
+        title: const Text('Register New User', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 4)),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: GestureDetector(
+                      onTap: _pickImage,
+                      child: Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          CircleAvatar(
+                            radius: 64,
+                            backgroundColor: Colors.blue.shade50,
+                            backgroundImage: _pickedFile != null
+                                ? (kIsWeb ? MemoryImage(_webImage!) : NetworkImage(_pickedFile!.path) as ImageProvider)
+                                : null,
+                            child: _pickedFile == null ? Icon(Icons.person, size: 64, color: Colors.blue.shade200) : null,
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade600,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 3),
+                            ),
+                            child: const Icon(Icons.camera_alt, color: Colors.white, size: 24),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  const Text('User Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 16),
+                  _buildTextField(_idController, 'Roll No / Employee ID'),
+                  const SizedBox(height: 16),
+                  _buildTextField(_nameController, 'Full Name'),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<UserRole>(
+                    initialValue: _selectedRole,
+                    decoration: InputDecoration(
+                      labelText: 'Role',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(12)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    ),
+                    items: UserRole.values.map((r) => DropdownMenuItem(value: r, child: Text(r.name.toUpperCase()))).toList(),
+                    onChanged: (val) => setState(() => _selectedRole = val!),
+                  ),
+                  
+                  if (_selectedRole == UserRole.student) ...[
+                    const SizedBox(height: 24),
+                    const Text('Class Assignment', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 16),
+                    StreamBuilder<List<ClassModel>>(
+                      stream: classService.getClasses(),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                        final classes = snapshot.data!;
+                        
+                        final years = classes.map((c) => c.year).toSet().toList()..sort();
+                        if (!years.contains(_selectedYear)) {
+                          _selectedYear = null; _selectedBranch = null; _selectedSection = null;
+                        }
+                        
+                        List<String> branches = [];
+                        if (_selectedYear != null) {
+                          branches = classes.where((c) => c.year == _selectedYear).map((c) => c.branch).toSet().toList()..sort();
+                        }
+                        if (!branches.contains(_selectedBranch)) {
+                          _selectedBranch = null; _selectedSection = null;
+                        }
+
+                        List<String> sections = [];
+                        if (_selectedYear != null && _selectedBranch != null) {
+                          sections = classes.where((c) => c.year == _selectedYear && c.branch == _selectedBranch).map((c) => c.section).toSet().toList()..sort();
+                        }
+                        if (!sections.contains(_selectedSection)) {
+                          _selectedSection = null;
+                        }
+
+                        return Row(
+                          children: [
+                            Expanded(child: DropdownButtonFormField<String>(
+                              isExpanded: true, initialValue: _selectedYear,
+                              decoration: InputDecoration(labelText: 'Year', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(12))),
+                              items: years.map((y) => DropdownMenuItem(value: y, child: Text(y))).toList(),
+                              onChanged: (val) => setState(() => _selectedYear = val),
+                            )),
+                            const SizedBox(width: 8),
+                            Expanded(flex: 2, child: DropdownButtonFormField<String>(
+                              isExpanded: true, initialValue: _selectedBranch,
+                              decoration: InputDecoration(labelText: 'Branch', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(12))),
+                              items: branches.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
+                              onChanged: _selectedYear != null ? (val) => setState(() => _selectedBranch = val) : null,
+                            )),
+                            const SizedBox(width: 8),
+                            Expanded(child: DropdownButtonFormField<String>(
+                              isExpanded: true, initialValue: _selectedSection,
+                              decoration: InputDecoration(labelText: 'Sec', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(12))),
+                              items: sections.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                              onChanged: _selectedBranch != null ? (val) => setState(() => _selectedSection = val) : null,
+                            )),
+                          ],
+                        );
+                      },
+                    ),
+                  ] else ...[
+                    const SizedBox(height: 24),
+                    const Text('Authentication', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 16),
+                    _buildTextField(_emailController, 'Email Address'),
+                    const SizedBox(height: 16),
+                    _buildTextField(_passwordController, 'Password', obscureText: true),
+                  ],
+                  const SizedBox(height: 48),
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ElevatedButton.icon(
+                          onPressed: _register,
+                          icon: const Icon(Icons.person_add_rounded, color: Colors.white),
+                          label: const Text('Register User', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue.shade600,
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            elevation: 0,
+                          ),
+                        ),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
-            TextField(
-                controller: _idController,
-                decoration:
-                    const InputDecoration(labelText: 'Roll No / Employee ID')),
-            const SizedBox(height: 16),
-            TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Full Name')),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<UserRole>(
-              initialValue: _selectedRole,
-              items: UserRole.values
-                  .map((role) => DropdownMenuItem(
-                      value: role, child: Text(role.name.toUpperCase())))
-                  .toList(),
-              onChanged: (val) => setState(() => _selectedRole = val!),
-              decoration: const InputDecoration(labelText: 'Role'),
-            ),
-            if (_selectedRole == UserRole.student) ...[
-              const SizedBox(height: 16),
-              StreamBuilder<List<ClassModel>>(
-                stream: classService.getClasses(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) return const CircularProgressIndicator();
-                  final classes = snapshot.data!;
-                  
-                  final years = classes.map((c) => c.year).toSet().toList()..sort();
-                  if (!years.contains(_selectedYear)) {
-                    _selectedYear = null;
-                    _selectedBranch = null;
-                    _selectedSection = null;
-                  }
-                  
-                  List<String> branches = [];
-                  if (_selectedYear != null) {
-                    branches = classes.where((c) => c.year == _selectedYear).map((c) => c.branch).toSet().toList()..sort();
-                  }
-                  if (!branches.contains(_selectedBranch)) {
-                    _selectedBranch = null;
-                    _selectedSection = null;
-                  }
-
-                  List<String> sections = [];
-                  if (_selectedYear != null && _selectedBranch != null) {
-                    sections = classes
-                        .where((c) => c.year == _selectedYear && c.branch == _selectedBranch)
-                        .map((c) => c.section)
-                        .toSet()
-                        .toList()..sort();
-                  }
-                  if (!sections.contains(_selectedSection)) {
-                    _selectedSection = null;
-                  }
-
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          isExpanded: true,
-                          initialValue: _selectedYear,
-                          hint: const Text('Year'),
-                          items: years.map((y) => DropdownMenuItem(value: y, child: Text(y))).toList(),
-                          onChanged: (val) => setState(() => _selectedYear = val),
-                          decoration: const InputDecoration(labelText: 'Year'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 2,
-                        child: DropdownButtonFormField<String>(
-                          isExpanded: true,
-                          initialValue: _selectedBranch,
-                          hint: const Text('Branch'),
-                          items: branches.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
-                          onChanged: _selectedYear != null ? (val) => setState(() => _selectedBranch = val) : null,
-                          decoration: const InputDecoration(labelText: 'Branch'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          isExpanded: true,
-                          initialValue: _selectedSection,
-                          hint: const Text('Sec'),
-                          items: sections.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-                          onChanged: _selectedBranch != null ? (val) => setState(() => _selectedSection = val) : null,
-                          decoration: const InputDecoration(labelText: 'Section'),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ] else ...[
-              const SizedBox(height: 16),
-              TextField(
-                  controller: _emailController,
-                  decoration:
-                      const InputDecoration(labelText: 'Email Address')),
-              const SizedBox(height: 16),
-              TextField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Password')),
-            ],
-            const SizedBox(height: 32),
-            _isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: _register, child: const Text('Register User')),
-          ],
+          ),
         ),
       ),
     );

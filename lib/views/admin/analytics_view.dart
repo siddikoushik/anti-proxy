@@ -145,14 +145,19 @@ class _AnalyticsViewState extends ConsumerState<AnalyticsView> {
     }).toList();
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF9F9F9),
       appBar: AppBar(
-        title: const Text('Analytics'),
+        title: const Text('System Analytics', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black),
         actions: [
           IconButton(
-            icon: const Icon(Icons.picture_as_pdf),
+            icon: const Icon(Icons.picture_as_pdf, color: Colors.red),
             tooltip: 'Export as PDF',
             onPressed: () => _generatePdf(filteredData),
           ),
+          const SizedBox(width: 16),
         ],
       ),
       body: _isLoading 
@@ -160,11 +165,14 @@ class _AnalyticsViewState extends ConsumerState<AnalyticsView> {
         : Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.all(24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Text('Filter Records', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    const SizedBox(height: 16),
                     // Class Dropdowns in a Row
                     StreamBuilder<List<ClassModel>>(
                       stream: classService.getClasses(),
@@ -196,7 +204,7 @@ class _AnalyticsViewState extends ConsumerState<AnalyticsView> {
                             Expanded(
                               child: DropdownButtonFormField<String>(
                                 value: _selectedYear,
-                                decoration: const InputDecoration(labelText: 'Year', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                                decoration: InputDecoration(labelText: 'Year', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(12)), contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
                                 items: years.map((y) => DropdownMenuItem(value: y, child: Text(y))).toList()..insert(0, const DropdownMenuItem(value: null, child: Text('All'))),
                                 onChanged: (val) => setState(() {
                                   _selectedYear = val;
@@ -205,11 +213,11 @@ class _AnalyticsViewState extends ConsumerState<AnalyticsView> {
                                 }),
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: DropdownButtonFormField<String>(
                                 value: _selectedBranch,
-                                decoration: const InputDecoration(labelText: 'Branch', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                                decoration: InputDecoration(labelText: 'Branch', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(12)), contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
                                 items: branches.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList()..insert(0, const DropdownMenuItem(value: null, child: Text('All'))),
                                 onChanged: _selectedYear != null ? (val) => setState(() {
                                   _selectedBranch = val;
@@ -217,11 +225,11 @@ class _AnalyticsViewState extends ConsumerState<AnalyticsView> {
                                 }) : null,
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: DropdownButtonFormField<String>(
                                 value: _selectedSection,
-                                decoration: const InputDecoration(labelText: 'Section', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                                decoration: InputDecoration(labelText: 'Section', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(12)), contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
                                 items: sections.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList()..insert(0, const DropdownMenuItem(value: null, child: Text('All'))),
                                 onChanged: _selectedBranch != null ? (val) => setState(() => _selectedSection = val) : null,
                               ),
@@ -230,32 +238,32 @@ class _AnalyticsViewState extends ConsumerState<AnalyticsView> {
                         );
                       }
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     // Filter Chips
                     Wrap(
-                      spacing: 8.0,
+                      spacing: 12.0,
                       children: [
                         ChoiceChip(
-                          label: const Text('All'),
+                          label: const Text('All Students'),
                           selected: _selectedFilter == AttendanceFilter.all,
                           onSelected: (val) => setState(() => _selectedFilter = AttendanceFilter.all),
                         ),
                         ChoiceChip(
-                          label: const Text('< 65%'),
+                          label: const Text('Critical < 65%'),
                           selected: _selectedFilter == AttendanceFilter.below65,
-                          selectedColor: Colors.red.withValues(alpha: 0.2),
+                          selectedColor: Colors.red.withOpacity(0.2),
                           onSelected: (val) => setState(() => _selectedFilter = AttendanceFilter.below65),
                         ),
                         ChoiceChip(
-                          label: const Text('< 75%'),
+                          label: const Text('Warning < 75%'),
                           selected: _selectedFilter == AttendanceFilter.below75,
-                          selectedColor: Colors.orange.withValues(alpha: 0.2),
+                          selectedColor: Colors.orange.withOpacity(0.2),
                           onSelected: (val) => setState(() => _selectedFilter = AttendanceFilter.below75),
                         ),
                         ChoiceChip(
-                          label: const Text('>= 75%'),
+                          label: const Text('Safe >= 75%'),
                           selected: _selectedFilter == AttendanceFilter.above75,
-                          selectedColor: Colors.green.withValues(alpha: 0.2),
+                          selectedColor: Colors.green.withOpacity(0.2),
                           onSelected: (val) => setState(() => _selectedFilter = AttendanceFilter.above75),
                         ),
                       ],
@@ -263,35 +271,50 @@ class _AnalyticsViewState extends ConsumerState<AnalyticsView> {
                   ],
                 ),
               ),
+              const Divider(height: 1),
               Expanded(
                 child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: SingleChildScrollView(
-                    child: DataTable(
-                      columns: const [
-                        DataColumn(label: Text('Roll No')),
-                        DataColumn(label: Text('Name')),
-                        DataColumn(label: Text('Section')),
-                        DataColumn(label: Text('Total')),
-                        DataColumn(label: Text('Present')),
-                        DataColumn(label: Text('%')),
-                      ],
-                      rows: filteredData.map((s) {
-                        final color = s.attendancePercentage < 65.0 
-                            ? Colors.red 
-                            : (s.attendancePercentage < 75.0 ? Colors.orange : Colors.green);
-                        return DataRow(cells: [
-                          DataCell(Text(s.id)),
-                          DataCell(Text(s.name)),
-                          DataCell(Text(s.section)),
-                          DataCell(Text(s.totalSessions.toString())),
-                          DataCell(Text(s.presentCount.toString())),
-                          DataCell(Text(
-                            '${s.attendancePercentage.toStringAsFixed(1)}%',
-                            style: TextStyle(color: color, fontWeight: FontWeight.bold),
-                          )),
-                        ]);
-                      }).toList(),
+                  padding: const EdgeInsets.all(24),
+                  child: Card(
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.black.withOpacity(0.05))),
+                    color: Colors.white,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        headingRowColor: WidgetStateProperty.all(Colors.grey.shade50),
+                        columns: const [
+                          DataColumn(label: Text('Roll No', style: TextStyle(fontWeight: FontWeight.bold))),
+                          DataColumn(label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold))),
+                          DataColumn(label: Text('Section', style: TextStyle(fontWeight: FontWeight.bold))),
+                          DataColumn(label: Text('Total Cells', style: TextStyle(fontWeight: FontWeight.bold))),
+                          DataColumn(label: Text('Present Cells', style: TextStyle(fontWeight: FontWeight.bold))),
+                          DataColumn(label: Text('Overall %', style: TextStyle(fontWeight: FontWeight.bold))),
+                        ],
+                        rows: filteredData.map((s) {
+                          final color = s.attendancePercentage < 65.0 
+                              ? Colors.red.shade700
+                              : (s.attendancePercentage < 75.0 ? Colors.orange.shade800 : Colors.green.shade700);
+                          return DataRow(cells: [
+                            DataCell(Text(s.id, style: const TextStyle(fontWeight: FontWeight.w500))),
+                            DataCell(Text(s.name)),
+                            DataCell(Text(s.section)),
+                            DataCell(Text(s.totalSessions.toString())),
+                            DataCell(Text(s.presentCount.toString())),
+                            DataCell(Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: color.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '${s.attendancePercentage.toStringAsFixed(1)}%',
+                                style: TextStyle(color: color, fontWeight: FontWeight.bold),
+                              ),
+                            )),
+                          ]);
+                        }).toList(),
+                      ),
                     ),
                   ),
                 ),
@@ -300,8 +323,9 @@ class _AnalyticsViewState extends ConsumerState<AnalyticsView> {
           ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _generatePdf(filteredData),
-        icon: const Icon(Icons.download),
-        label: const Text('Download PDF'),
+        icon: const Icon(Icons.download, color: Colors.white),
+        label: const Text('Download PDF', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.blue.shade600,
       ),
     );
   }

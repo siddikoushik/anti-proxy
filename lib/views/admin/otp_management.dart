@@ -7,7 +7,13 @@ class OtpManagement extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('OTP Management')),
+      backgroundColor: const Color(0xFFF9F9F9),
+      appBar: AppBar(
+        title: const Text('OTP Management', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('pending_otps')
@@ -39,50 +45,103 @@ class OtpManagement extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No pending OTP requests'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.mark_email_read_outlined, size: 80, color: Colors.grey.shade300),
+                  const SizedBox(height: 16),
+                  Text('No Pending Requests', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.grey.shade600)),
+                  const SizedBox(height: 8),
+                  Text('All faculty OTPs are currently resolved.', style: TextStyle(color: Colors.grey.shade500)),
+                ],
+              ),
+            );
           }
 
-          return ListView.builder(
-            itemCount: snapshot.data!.docs.length,
-            itemBuilder: (context, index) {
-              var doc = snapshot.data!.docs[index];
-              var data = doc.data() as Map<String, dynamic>;
-              String userId = doc.id;
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: ListView.builder(
+                padding: const EdgeInsets.all(24),
+                itemCount: snapshot.data!.docs.length,
+                itemBuilder: (context, index) {
+                  var doc = snapshot.data!.docs[index];
+                  var data = doc.data() as Map<String, dynamic>;
+                  String userId = doc.id;
 
-              return ListTile(
-                title: Text('${data['name'] ?? 'Unknown'} (ID: $userId)'),
-                subtitle: Text(
-                    'Requested: ${(data['requested_at'] as Timestamp?)?.toDate().toString() ?? 'N/A'}'),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (data['otp'] != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.green.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.green),
-                        ),
-                        child: Text(
-                          data['otp'].toString(),
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Colors.green),
-                        ),
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.black.withOpacity(0.05))),
+                    color: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                     CircleAvatar(
+                                        backgroundColor: Colors.amber.shade50,
+                                        foregroundColor: Colors.amber.shade800,
+                                        child: const Icon(Icons.person),
+                                     ),
+                                     const SizedBox(width: 16),
+                                     Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                           Text(data['name'] ?? 'Unknown', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                           Text('ID: $userId', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                                        ],
+                                     )
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                Text('Requested: ${(data['requested_at'] as Timestamp?)?.toDate().toString().split('.').first ?? 'N/A'}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              if (data['otp'] != null)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.shade50,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.green.shade200),
+                                  ),
+                                  child: Text(
+                                    data['otp'].toString(),
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, letterSpacing: 4, color: Colors.green.shade700, fontFamily: 'monospace'),
+                                  ),
+                                ),
+                              const SizedBox(height: 8),
+                              OutlinedButton.icon(
+                                icon: const Icon(Icons.refresh, size: 16),
+                                label: const Text('Generate Token'),
+                                style: OutlinedButton.styleFrom(
+                                   foregroundColor: Colors.blue.shade600,
+                                   side: BorderSide(color: Colors.blue.shade200),
+                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                ),
+                                onPressed: () => _issueOtp(context, userId),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      icon: const Icon(Icons.refresh, color: Colors.blue),
-                      onPressed: () => _issueOtp(context, userId),
-                      tooltip: 'Regenerate OTP',
                     ),
-                  ],
-                ),
-              );
-            },
+                  );
+                },
+              ),
+            ),
           );
         },
       ),
