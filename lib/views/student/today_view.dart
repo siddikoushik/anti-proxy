@@ -215,7 +215,6 @@ class _SessionCard extends StatelessWidget {
           .snapshots(),
       builder: (context, snapshot) {
         final isPresent = snapshot.hasData && snapshot.data!.exists && (snapshot.data!.data() as Map<String, dynamic>?)?['status'] == 'present';
-        final isAbsent = snapshot.hasData && snapshot.data!.exists && (snapshot.data!.data() as Map<String, dynamic>?)?['status'] == 'absent';
         final isClosed = session.status == 'closed';
         
         // Determine the card style based on state
@@ -229,7 +228,7 @@ class _SessionCard extends StatelessWidget {
           accentColor = const Color(0xFF4CAF50); // Green Accent
           statusText = 'Present';
           statusIcon = Icons.check_circle_outline;
-        } else if (isAbsent || isClosed) {
+        } else if (isClosed) {
           bgColor = const Color(0xFFF3F4F6); // Light Grey
           accentColor = const Color(0xFF9CA3AF); // Grey Accent
           statusText = 'Absent';
