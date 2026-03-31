@@ -23,10 +23,10 @@ class _TodayViewState extends ConsumerState<TodayView> {
 
     final formattedFilterDate = DateFormat('yyyy-MM-dd').format(_selectedDate);
 
-    // Generate dates: 7 days back, 7 days forward
+    // Generate dates: 7 days back, 7 days forward securely centered around _selectedDate
     final dates = List.generate(
       15, 
-      (index) => DateTime.now().subtract(const Duration(days: 7)).add(Duration(days: index))
+      (index) => _selectedDate.subtract(const Duration(days: 7)).add(Duration(days: index))
     );
 
     return Scaffold(
@@ -58,11 +58,43 @@ class _TodayViewState extends ConsumerState<TodayView> {
                     style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'Viewing schedule for ${DateFormat('MMM d').format(_selectedDate)}',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Schedule for ${DateFormat('MMM d, yyyy').format(_selectedDate)}',
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.calendar_month, color: Colors.blueAccent),
+                        tooltip: 'Select Specific Date',
+                        onPressed: () async {
+                          final DateTime? picked = await showDatePicker(
+                            context: context,
+                            initialDate: _selectedDate,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2030),
+                            builder: (context, child) {
+                              return Theme(
+                                data: Theme.of(context).copyWith(
+                                  colorScheme: ColorScheme.light(
+                                    primary: Colors.blue.shade700, 
+                                    onPrimary: Colors.white,
+                                    onSurface: Colors.black,
+                                  ),
+                                ),
+                                child: child!,
+                              );
+                            },
+                          );
+                          if (picked != null && picked != _selectedDate) {
+                            setState(() => _selectedDate = picked);
+                          }
+                        },
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   // HORIZONTAL DATE LIST
                   SizedBox(
                     height: 65,

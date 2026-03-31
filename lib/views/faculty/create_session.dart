@@ -200,7 +200,7 @@ class _CreateSessionState extends ConsumerState<CreateSession> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         isExpanded: true,
-                        value: _selectedYear,
+                        initialValue: _selectedYear,
                         hint: const Text('Year'),
                         items: years.map((y) => DropdownMenuItem(value: y, child: Text(y))).toList(),
                         onChanged: (val) => setState(() => _selectedYear = val),
@@ -212,7 +212,7 @@ class _CreateSessionState extends ConsumerState<CreateSession> {
                       flex: 2,
                       child: DropdownButtonFormField<String>(
                         isExpanded: true,
-                        value: _selectedBranch,
+                        initialValue: _selectedBranch,
                         hint: const Text('Branch'),
                         items: branches.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
                         onChanged: _selectedYear != null ? (val) => setState(() => _selectedBranch = val) : null,
@@ -223,7 +223,7 @@ class _CreateSessionState extends ConsumerState<CreateSession> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         isExpanded: true,
-                        value: _selectedSection,
+                        initialValue: _selectedSection,
                         hint: const Text('Sec'),
                         items: sections.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                         onChanged: _selectedBranch != null ? (val) => setState(() => _selectedSection = val) : null,

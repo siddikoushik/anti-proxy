@@ -1,5 +1,6 @@
 import '../../services/auth_service.dart';
 import 'package:flutter/material.dart';
+import '../../widgets/glass_auth_layout.dart';
 
 class StudentOtpLogin extends StatefulWidget {
   const StudentOtpLogin({super.key});
@@ -52,54 +53,70 @@ class _StudentOtpLoginState extends State<StudentOtpLogin> {
       } else {
         if (mounted) {
           setState(() => _isLoading = false);
-          ScaffoldMessenger.of(context)
-              .showSnackBar(const SnackBar(content: Text('Invalid OTP')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: const [
+                  Icon(Icons.error_outline, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text('Invalid OTP'),
+                ],
+              ),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
         }
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Login failed: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Login failed: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Student OTP Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _userIdController,
-              decoration:
-                  const InputDecoration(labelText: 'Student Roll No / User ID'),
-              enabled: !_otpRequested,
+    return GlassAuthLayout(
+      title: 'Student Portal',
+      subtitle: 'Enter your ID to receive an OTP',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            controller: _userIdController,
+            decoration: const InputDecoration(
+              labelText: 'Student Roll No / ID',
+              prefixIcon: Icon(Icons.badge_outlined),
             ),
-            if (_otpRequested) ...[
-              const SizedBox(height: 16),
-              TextField(
-                controller: _otpController,
-                decoration: const InputDecoration(
-                  labelText: 'Enter OTP (from Admin)',
-                  hintText: 'Enter 6-digit OTP provided by Admin',
-                ),
-                keyboardType: TextInputType.number,
+            enabled: !_otpRequested,
+          ),
+          if (_otpRequested) ...[
+            const SizedBox(height: 16),
+            TextField(
+              controller: _otpController,
+              decoration: const InputDecoration(
+                labelText: 'Enter OTP',
+                hintText: '6-digit OTP from Admin',
+                prefixIcon: Icon(Icons.password_outlined),
               ),
-            ],
-            const SizedBox(height: 32),
-            _isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: _otpRequested ? _verifyAndLogin : _requestOtp,
-                    child:
-                        Text(_otpRequested ? 'Verify & Login' : 'Request OTP'),
-                  ),
+              keyboardType: TextInputType.number,
+            ),
           ],
-        ),
+          const SizedBox(height: 32),
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : ElevatedButton.icon(
+                  onPressed: _otpRequested ? _verifyAndLogin : _requestOtp,
+                  icon: Icon(_otpRequested ? Icons.login : Icons.send_rounded),
+                  label: Text(_otpRequested ? 'Verify & Login' : 'Request OTP'),
+                ),
+        ],
       ),
     );
   }

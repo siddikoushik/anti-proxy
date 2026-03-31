@@ -172,8 +172,8 @@ class SubjectsView extends ConsumerWidget {
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF4A4E69)),
                           ),
                           const SizedBox(height: 12),
-                          Row(
-                            children: const [
+                          const Row(
+                            children: [
                               Icon(Icons.menu_book, size: 16, color: Colors.black38),
                               SizedBox(width: 8),
                               Text('Theory | Regular', style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.w600, fontSize: 13)),
