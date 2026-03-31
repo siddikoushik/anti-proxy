@@ -5,6 +5,7 @@ import 'user_registration.dart';
 import 'otp_management.dart';
 import 'create_class_view.dart';
 import 'analytics_view.dart';
+import 'face_reregister_view.dart';
 
 class AdminDashboard extends ConsumerWidget {
   const AdminDashboard({super.key});
@@ -135,6 +136,13 @@ class AdminDashboard extends ConsumerWidget {
                     icon: Icons.class_outlined,
                     color: const Color(0xFF8B5CF6), // Purple
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateClassView())),
+                  ),
+                  _buildActionCard(
+                    context,
+                    title: 'Face\nRe-Register',
+                    icon: Icons.face_retouching_natural_rounded,
+                    color: const Color(0xFFEC4899), // Pink
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FaceReregisterView())),
                   ),
                 ],
               ),
