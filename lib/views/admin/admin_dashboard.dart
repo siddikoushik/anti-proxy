@@ -29,81 +29,85 @@ class AdminDashboard extends ConsumerWidget {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Modern Hero Header Section
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(32),
-                  bottomRight: Radius.circular(32),
-                ),
-                boxShadow: [
-                  BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4)),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Welcome back,',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 700), // Perfect width for dashboards on web
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Modern Hero Header Section
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(32),
+                      bottomRight: Radius.circular(32),
+                    ),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4)),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    adminName,
-                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black87),
-                  ),
-                  const SizedBox(height: 24),
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Welcome back,',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
                       ),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            shape: BoxShape.circle,
+                      const SizedBox(height: 4),
+                      Text(
+                        adminName,
+                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black87),
+                      ),
+                      const SizedBox(height: 24),
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                          child: const Icon(Icons.shield_outlined, color: Colors.white, size: 36),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        const SizedBox(width: 16),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('System Secure', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-                              SizedBox(height: 4),
-                              Text('All verification protocols active', style: TextStyle(color: Colors.white70, fontSize: 14)),
-                            ],
-                          ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.shield_outlined, color: Colors.white, size: 36),
+                            ),
+                            const SizedBox(width: 16),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('System Secure', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                                  SizedBox(height: 4),
+                                  Text('All verification protocols active', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            
-            // Action Grid
-            Expanded(
-              child: GridView.count(
-                padding: const EdgeInsets.all(24),
-                crossAxisCount: 2,
-                mainAxisSpacing: 20,
-                crossAxisSpacing: 20,
-                children: [
+                ),
+                
+                // Action Grid
+                Expanded(
+                  child: GridView.extent(
+                    maxCrossAxisExtent: 300,
+                    padding: const EdgeInsets.all(24),
+                    mainAxisSpacing: 20,
+                    crossAxisSpacing: 20,
+                    childAspectRatio: 1.1,
+                    children: [
                   _buildActionCard(
                     context,
                     title: 'Register\nUser',
@@ -137,6 +141,8 @@ class AdminDashboard extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+      ),
       ),
     );
   }
