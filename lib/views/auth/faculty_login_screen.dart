@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/glass_auth_layout.dart';
 
@@ -67,6 +68,19 @@ class _FacultyLoginScreenState extends ConsumerState<FacultyLoginScreen> {
     }
 
     try {
+      // Security Check: Manually query Firestore to ensure this email is actually an active Faculty.
+      // Firebase Auth obscures "user-not-found" by default to prevent enumeration attacks.
+      final userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .where('role', isEqualTo: 'faculty')
+          .limit(1)
+          .get();
+
+      if (userSnapshot.docs.isEmpty) {
+        throw Exception('No active faculty account found for this email address.');
+      }
+
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -75,8 +89,10 @@ class _FacultyLoginScreenState extends ConsumerState<FacultyLoginScreen> {
       }
     } catch (e) {
       if (mounted) {
+        // Strip the raw Exception text to look cleaner
+        final errorMsg = e.toString().replaceAll('Exception: ', '');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(errorMsg), backgroundColor: Colors.redAccent),
         );
       }
     }
