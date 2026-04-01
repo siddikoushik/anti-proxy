@@ -16,12 +16,17 @@ class _FacultyLoginScreenState extends ConsumerState<FacultyLoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  String? _errorMessage;
+  String? _successMessage;
 
   Future<void> _login() async {
+    setState(() {
+      _errorMessage = null;
+      _successMessage = null;
+    });
+
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter both email and password')),
-      );
+      setState(() => _errorMessage = 'Please enter both email and password.');
       return;
     }
 
@@ -40,18 +45,9 @@ class _FacultyLoginScreenState extends ConsumerState<FacultyLoginScreen> {
     } catch (e) {
       debugPrint('FacultyLogin: Login error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: Colors.white),
-                const SizedBox(width: 8),
-                Expanded(child: Text('Login Failed: ${e.toString()}')),
-              ],
-            ),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
+        setState(() {
+          _errorMessage = 'Login Failed: ${e.toString().replaceAll('Exception: ', '')}';
+        });
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -59,15 +55,19 @@ class _FacultyLoginScreenState extends ConsumerState<FacultyLoginScreen> {
   }
 
   Future<void> _resetPassword() async {
+    setState(() {
+      _errorMessage = null;
+      _successMessage = null;
+    });
+
     final email = _emailController.text.trim();
     if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your institutional email first to receive a reset link.')),
-      );
+      setState(() => _errorMessage = 'Please enter your institutional email first to receive a reset link.');
       return;
     }
 
     try {
+      setState(() => _isLoading = true);
       // Security Check: Manually query Firestore to ensure this email is actually an active Faculty.
       // Firebase Auth obscures "user-not-found" by default to prevent enumeration attacks.
       final userSnapshot = await FirebaseFirestore.instance
@@ -83,18 +83,20 @@ class _FacultyLoginScreenState extends ConsumerState<FacultyLoginScreen> {
 
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password reset link sent! Check your inbox.'), backgroundColor: Colors.green),
-        );
+        setState(() {
+          _successMessage = 'Password reset link sent! Check your inbox.';
+          _errorMessage = null;
+        });
       }
     } catch (e) {
       if (mounted) {
-        // Strip the raw Exception text to look cleaner
-        final errorMsg = e.toString().replaceAll('Exception: ', '');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMsg), backgroundColor: Colors.redAccent),
-        );
+        setState(() {
+          _errorMessage = e.toString().replaceAll('Exception: ', '');
+          _successMessage = null;
+        });
       }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -106,6 +108,52 @@ class _FacultyLoginScreenState extends ConsumerState<FacultyLoginScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (_errorMessage != null) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                border: Border.all(color: Colors.red.withOpacity(0.3)),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+          if (_successMessage != null) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.1),
+                border: Border.all(color: Colors.green.withOpacity(0.3)),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _successMessage!,
+                      style: const TextStyle(color: Colors.green, fontSize: 13, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           TextField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
